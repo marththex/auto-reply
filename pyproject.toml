@@ -1,0 +1,61 @@
+[project]
+name = "auto-reply"
+version = "0.1.0"
+description = "Fine-tune Gemma 4 E2B to draft Gmail replies in your own writing voice"
+requires-python = ">=3.11"
+dependencies = [
+    "google-api-python-client>=2.100",
+    "google-auth-oauthlib>=1.2",
+    "pyyaml>=6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.15.20",
+]
+# GPU-only, opt-in: uv sync --group train (native Windows works; see cu128 note below).
+# unsloth pulls torch/transformers/peft/bitsandbytes/accelerate.
+train = [
+    "unsloth",
+    "trl",
+    "datasets",
+    # Direct entries so tool.uv.sources can route them to the CUDA index
+    # (sources don't apply to transitive dependencies). Pinned to the newest
+    # torch that current unsloth supports - unpinned, the resolver maximizes
+    # torch and downgrades unsloth instead.
+    "torch==2.10.*",
+    "torchvision==0.25.*",
+    "gguf>=0.19.0",
+]
+
+[project.scripts]
+build-pairs = "autoreply.pipeline.build_pairs:main"
+gmail-auth = "autoreply.gmail.auth:main"
+make-split = "autoreply.training.split:main"
+train-lora = "autoreply.training.train_lora:main"
+compare-replies = "autoreply.training.compare:main"
+draft-replies = "autoreply.gmail.bridge:main"
+export-gguf = "autoreply.training.export_gguf:main"
+
+# On Windows, PyPI serves CPU-only torch wheels; pull CUDA builds from the
+# PyTorch index instead (RTX 5080 / Blackwell needs cu128+). Linux/WSL wheels
+# bundle CUDA already, so the override is Windows-only.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128", marker = "sys_platform == 'win32'" }]
+torchvision = [{ index = "pytorch-cu128", marker = "sys_platform == 'win32'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/autoreply"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

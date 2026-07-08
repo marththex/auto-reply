@@ -1,0 +1,13 @@
+[Unit]
+Description=auto-reply draft run (one-shot)
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=<user>
+WorkingDirectory=<repo-path>/nas
+# Redirect in the shell, not via StandardOutput=append: - systemd opens that
+# file as root, which some network filesystems (e.g. NFS with root-squash)
+# turn into an unreadable anonymous-uid file.
+ExecStart=/bin/sh -c '/usr/bin/docker compose run --rm bridge >> <log-dir>/draft-replies.log 2>&1'

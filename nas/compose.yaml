@@ -1,0 +1,55 @@
+# llama.cpp inference server + one-shot draft bridge for a Linux Docker
+# host (NAS VM, spare box, etc.). Run from this directory:
+#   docker compose up -d
+#
+# Paths and ports come from the environment (or a .env file next to this
+# compose file - copy the repo-root .env.example). The defaults assume
+# everything lives in the repo checkout: models under ./models, facts/
+# allowlist/credentials at the repo root, DB under ./data.
+#
+# Models are mounted from the host, never baked into an image.
+# LLAMA_THREADS: leave a few vCPUs free; tune with the benchmark in
+# nas/README.md before settling (memory bandwidth usually saturates before
+# all cores are busy on this class of hardware).
+
+services:
+  llama-server:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    restart: unless-stopped
+    ports:
+      - "${LLAMA_PORT:-8080}:8080"
+    volumes:
+      - ${MODELS_DIR:-../models}:/models:ro
+    command: >
+      -m /models/${BASE_GGUF:-gemma-4-e2b-base-q5.gguf}
+      --lora /models/adapters/${ADAPTER_GGUF:-adapter.gguf}
+      --host 0.0.0.0
+      --port 8080
+      --ctx-size 4096
+      --threads ${LLAMA_THREADS:-4}
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # One-shot bridge run, invoked by cron/systemd (see crontab.example and
+  # systemd/) or manually:
+  #   docker compose run --rm bridge [extra draft-replies flags]
+  # Behind a profile so `docker compose up -d` never starts it as a daemon.
+  bridge:
+    build: ..
+    profiles: ["manual"]
+    environment:
+      AUTOREPLY_ENDPOINT: http://llama-server:8080
+      AUTOREPLY_DB: /data/autoreply.db
+    volumes:
+      # Keep the DB on a host-local disk: SQLite on a network share with
+      # more than one client host risks lock corruption.
+      - ${DATA_DIR:-../data}:/data
+      # OAuth client secret + token (token refresh rewrites it: rw)
+      - ${CONFIG_DIR:-..}/credentials:/app/credentials
+      - ${CONFIG_DIR:-..}:/config:ro
+    depends_on:
+      llama-server:
+        condition: service_healthy

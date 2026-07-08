@@ -1,0 +1,30 @@
+# Copy to facts.yaml (gitignored) and fill in real values.
+# Injected into every draft-generation prompt so the model stops inventing
+# personal details. Free-form YAML: nesting becomes "key / subkey: value"
+# bullet lines in the prompt. Keep it short - this spends context tokens.
+#
+# identity.name also sets the persona name used in the prompts ("Write the
+# reply <first name> would send...").
+
+identity:
+  name: Jane Doe
+  employer: Example Corp
+  role: Senior Widget Engineer
+  location: Springfield
+
+relationships:
+  - cousin Ben, software engineer at a big-tech firm in Seattle
+
+availability:
+  meetings: weekday evenings after 6pm
+  timezone: America/Los_Angeles
+
+job_search:
+  status: not currently looking for new roles
+
+# Standing instructions for every draft - the model follows these more
+# reliably than it recalls facts, so put guardrails here.
+drafting_rules:
+  - do not add a signature or sign-off name; a signature block is appended automatically
+  - never write or sign as anyone other than Jane
+  - if a needed fact is not listed above, leave a [placeholder] instead of guessing

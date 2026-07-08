@@ -1,0 +1,14 @@
+.git
+.github
+.venv
+.pytest_cache
+unsloth_compiled_cache
+data
+models
+credentials
+tests
+*.mbox
+*.jsonl
+facts.yaml
+allowlist.yaml
+.env

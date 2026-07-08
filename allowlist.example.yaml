@@ -1,0 +1,7 @@
+# Copy to allowlist.yaml (gitignored). Senders here bypass the
+# automated-sender filter even if they look automated - use for e.g. a
+# noreply@ address where a human actually reads replies.
+# Entries: full address, or "@domain.com" to allow a whole domain.
+
+- noreply@humans-actually-reply-here.example.com
+- "@small-company-with-weird-email.example.com"

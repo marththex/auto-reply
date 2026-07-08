@@ -1,0 +1,12 @@
+# auto-reply scheduled drafting - NOT INSTALLED by default.
+# Replace <repo-path> and <log-dir>, review, then enable on the Docker host
+# with:  crontab -e  (paste the line below)
+#
+# Every 5 minutes: reconcile prior drafts, then draft replies for new mail.
+# Safety: --max-drafts-per-run 3 baked into the bridge defaults; every run
+# writes a summary row to the runs table and appends to the log below.
+#
+# */5 * * * * cd <repo-path>/nas && /usr/bin/docker compose run --rm bridge >> <log-dir>/draft-replies.log 2>&1
+
+# systemd-timer alternative (equivalent; use EITHER this or cron, not both):
+# templates in nas/systemd/ - instantiation one-liner in nas/README.md.

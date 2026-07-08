@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      # Default groups only (dev): the GPU 'train' group is opt-in and has no
+      # place in CI - tests are written to pass without torch/unsloth.
+      - run: uv sync
+      - run: uv run ruff check .
+      - run: uv run pytest

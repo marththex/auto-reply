@@ -1,0 +1,48 @@
+name: Deploy to NAS
+
+# Manual-only until the secrets below are configured (Settings -> Secrets):
+#   NAS_SSH_KEY       - private key authorized on the Docker host
+#   NAS_SSH_HOSTNAME  - cloudflared tunnel hostname (e.g. nas-ssh.example.com)
+#   NAS_SSH_USER      - user on the Docker host
+#   NAS_APP_DIR       - repo checkout on the host (e.g. /home/me/auto-reply)
+# Once secrets exist, uncomment the push trigger to deploy on every main push.
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+
+concurrency: deploy-nas
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install cloudflared
+        run: |
+          curl -fsSL -o cloudflared.deb \
+            https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+
+      - name: Configure SSH over the cloudflared tunnel
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.NAS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          cat >> ~/.ssh/config <<'EOF'
+          Host nas
+            HostName ${{ secrets.NAS_SSH_HOSTNAME }}
+            User ${{ secrets.NAS_SSH_USER }}
+            IdentityFile ~/.ssh/id_ed25519
+            StrictHostKeyChecking accept-new
+            ProxyCommand cloudflared access ssh --hostname %h
+          EOF
+
+      # Git deploys code only; model artifacts move over a file share, never
+      # through git. The bridge runs via `compose run` behind a profile, so
+      # `up -d` does not rebuild it - build it explicitly.
+      - name: Pull and rebuild on the Docker host
+        run: |
+          ssh nas "cd '${{ secrets.NAS_APP_DIR }}/nas' \
+            && git pull --ff-only \
+            && docker compose up -d --build \
+            && docker compose build bridge"
