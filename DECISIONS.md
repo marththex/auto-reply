@@ -2,6 +2,64 @@
 
 Running log of project decisions and the evidence behind them. Newest first.
 
+## 2026-07-11 — job_search grounding gated behind a relevance condition; employer fact retained
+
+**Decision:** The `job_search` section key in facts.yaml now carries an
+explicit condition ("mention ONLY if this email is from a recruiter or hiring
+contact about a specific role"); the unconditional "never decline or downplay
+interest" drafting rule moved inside that gated recruiter line; a "reply only
+to what this email actually says" rule and the example file's `[placeholder]`
+rule were added. The employer fact stays in the identity block.
+facts.example.yaml models the gated shape.
+
+**Evidence:** A run of drafts pitched job availability regardless of what the
+incoming email said (including a coffee newsletter and an insurance survey).
+The script's wording traced to the ungated job_search block — its status
+phrase appeared verbatim in drafts and 0/363 times in the training corpus —
+not to memorized training data. A/B on the production llama.cpp server
+(3 facts variants × 5 synthetic probes × 2 samples each): gating cut
+job-content leakage on survey-style probes to 0/2 (from 1/2) and produced no
+hard declines of a genuine recruiter probe, while the ungated baseline
+declined 1/2 *despite* an unconditional instruction never to. Removing the
+employer fact eliminated employer leakage but caused worse confabulation:
+asked "where do you work these days", the model substituted a relative's
+employer from the relationships block instead of using a placeholder. Full
+outputs: `data/comparison-facts-gating.md` (gitignored).
+
+**Lesson:** at 2B scale an instruction gate is a damper, not a switch —
+marketing-style probes triggered the job script in every variant, and the
+pre-generation layers (sender filter, minimum-content skip — entry below) are
+what actually keep that mail away from the model. Grounding facts can leak
+into *any* draft: every always-on line in facts.yaml should either be safe in
+an arbitrary reply or carry an explicit condition. The durable fix for the
+topical prior is the planned retrain with facts in training prompts and the
+dominant reply genre downweighted (>50% of v2 reply tokens).
+
+## 2026-07-11 — Filter vocabulary extended after two live misses; near-empty bodies now skipped
+
+**Decision:** Extended the automated-sender filter and added a minimum-content
+layer. The marketing-subdomain vocabulary gains common ESP tokens
+(`hello|hi|updates?|promos?|offers?|marketing|engage|connect`), both
+do-not-reply layers (hard phrase + soft signal) now also match "respond",
+and `should_skip` gains a final layer skipping bodies under 10 words
+("insufficient content"). Allowlisted senders remain exempt from all layers.
+
+**Evidence:** Two automated messages reached generation on the scheduled
+bridge: a newsletter sent from a `hello.<brand>` ESP subdomain (token not in
+the vocabulary; scored below the content threshold) and a satisfaction survey
+whose boilerplate reads "please do not respond to this email" — the verb
+"respond" defeated both do-not-reply layers, which only knew "reply". The
+minimum-content layer addresses what happens after such a miss: image-only
+marketing HTML reduces to footer boilerplate under `html_to_text` (which keeps
+text nodes only), and a near-empty body gives the model nothing to condition
+on — a live 10-character body produced the same off-topic scripted reply in
+4/4 independent generations. Regression tests pin all three behaviors.
+
+**Lesson:** enumerated vocabularies fail one synonym or subdomain token at a
+time (second leak of this class — see the content-score layer's origin).
+Every miss becomes a pinned test case, and the minimum-content layer plus
+gated grounding (entry above) keep a future miss cheap instead of embarrassing.
+
 ## 2026-07-07 — v2 adapter: epoch 3 (checkpoint-117) promoted to production
 
 **Decision:** After the BOM-echo data fix and retrain, checkpoint-117

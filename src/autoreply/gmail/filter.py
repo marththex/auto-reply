@@ -11,6 +11,7 @@ AUTOMATED_LOCAL_PREFIXES = (
 AUTOMATED_PHRASES = (
     "this is an automated message",
     "do not reply to this email",
+    "do not respond to this email",
     "this mailbox is not monitored",
 )
 SKIP_PRECEDENCE = ("bulk", "auto_reply")
@@ -20,7 +21,8 @@ SKIP_PRECEDENCE = ("bulk", "auto_reply")
 # One point per signal class; skip at >= 2.
 CONTENT_SCORE_THRESHOLD = 2
 _MARKETING_SUBDOMAINS = re.compile(
-    r"^(mp\d*|mkt|mktg|e|em|email|mail|links?|click|go|news(letter)?|info|rewards|send|events?|member)$"
+    r"^(mp\d*|mkt|mktg|e|em|email|mail|links?|click|go|news(letter)?|info|rewards|send|events?|member"
+    r"|hello|hi|updates?|promos?|offers?|marketing|engage|connect)$"
 )
 _SALE_SUBJECT = re.compile(
     r"\$\d+[^.]*\boff\b|%\s*off|\bsale\b|limited time|ends soon|exclusive offer|free shipping",
@@ -36,8 +38,13 @@ _TRACKER_LINK = re.compile(
 )
 _TRACKER_LINK_MIN = 3
 _SOFT_DO_NOT_REPLY = re.compile(
-    r"do not reply|not (actively )?monitored", re.IGNORECASE
+    r"do not (reply|respond)|not (actively )?monitored", re.IGNORECASE
 )
+
+# Layer 5: a body this thin (image-only HTML reduced to footer boilerplate)
+# gives the model nothing to reply to, and generation with no conditioning
+# content parrots the facts block. Allowlisted senders are exempt (layer 0).
+MIN_BODY_WORDS = 10
 
 
 @dataclass
@@ -89,6 +96,10 @@ def should_skip(
         return FilterResult(
             skip=True, reason=f"content score {len(signals)}: " + " + ".join(signals)
         )
+
+    n_words = len(body.split())
+    if n_words < MIN_BODY_WORDS:
+        return FilterResult(skip=True, reason=f"insufficient content ({n_words} words)")
 
     return FilterResult(skip=False)
 
