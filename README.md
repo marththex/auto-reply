@@ -4,6 +4,8 @@ Fine-tunes Gemma 4 E2B (Unsloth LoRA) on your own sent mail so it can draft
 Gmail replies in your voice. Drafts land in your Gmail drafts folder via the
 API for human review — **nothing is ever auto-sent**.
 
+![Pipeline: Google Takeout export → clean + pair → LoRA fine-tune → serve on a NAS → human-reviewed Gmail drafts](docs/pipeline-diagram.svg)
+
 ```
 Takeout mbox ─▶ build-pairs ─▶ pairs.jsonl ─▶ make-split ─▶ train/eval
                                                               │
@@ -30,7 +32,11 @@ Gmail inbox ─▶ draft-replies ─▶ filter ─▶ generate (+facts.yaml) ─
   `facts.yaml`, `allowlist.yaml`, and `credentials/` — keep it that way
   when you add files.
 - **Facts grounding is a mitigation, not a fix.** `facts.yaml` reduces
-  invented details; it does not eliminate them.
+  invented details; it does not eliminate them. And it cuts both ways: every
+  always-on line can leak into an unrelated draft (most reliably when the
+  incoming body is thin), so any situational guidance — a job-search status,
+  an out-of-office note — needs an explicit condition on its section key, as
+  modeled in facts.example.yaml. Evidence in DECISIONS.md (2026-07-11).
 - **Email cleaning is adversarial.** Real mail clients produce artifacts
   you won't anticipate (this corpus had unquoted echoes of the original
   after a stray BOM in 29% of replies). Expect to add cleaning patterns for
@@ -127,9 +133,12 @@ uv run draft-replies              # create real Gmail drafts (still never sends)
 ```
 
 Per message: an automated-sender filter (noreply patterns → bulk/auto
-headers → automated phrases → scored marketing heuristics, with an
-allowlist override) rejects before any model call; skips and drafts are
-logged to the SQLite feedback DB (`data/autoreply.db`).
+headers → automated phrases → scored marketing heuristics → minimum-content
+check, with an allowlist override) rejects before any model call; skips and
+drafts are logged to the SQLite feedback DB (`data/autoreply.db`). The
+minimum-content layer exists because image-only marketing HTML reduces to a
+near-empty body, and a model given nothing to reply to parrots its grounding
+block instead.
 
 ## Operations
 

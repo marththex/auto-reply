@@ -78,12 +78,21 @@ review. See README.md for setup, DECISIONS.md for the decision log.
   (~380 pairs) include BOM-separated unquoted echoes of the original (29%
   of replies!), fused mid-line attributions, U+200A inside addresses. TDD
   every new pattern in tests/test_cleaning.py.
+- The facts block is an attractor: image-only marketing HTML reduces to a
+  near-empty body under html_to_text (text nodes only - no alt/href), and
+  generation with nothing to condition on parrots facts.yaml into the draft
+  (one live 10-char body did this 4/4 generations). Defenses, in order: the
+  filter's MIN_BODY_WORDS layer, conditions on situational facts sections
+  (gates are dampers, not switches, at 2B scale - A/B evidence in
+  DECISIONS.md 2026-07-11), human review.
 
 ## Known future steps
 
 1. Retrain once enough sent outcomes accumulate: build pairs from
-   sent_replies (final text = ground truth) and include the facts block in
-   TRAINING prompts (removes the current inference-only mismatch).
+   sent_replies (final text = ground truth), include the facts block in
+   TRAINING prompts (removes the current inference-only mismatch), and
+   downweight the corpus's dominant reply genre (>50% of v2 reply tokens -
+   see DECISIONS.md 2026-07-11) so one topic can't become the fallback mode.
 2. Gmail push notifications via GCP Pub/Sub (pull subscription works
    without a public endpoint) to replace polling.
 3. deploy.yml activation: set the 4 NAS_* secrets and an SSH hostname for

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="360" viewBox="0 0 1600 360" font-family="'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2a78d6"/>
+    </marker>
+    <marker id="arrowGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#898781"/>
+    </marker>
+  </defs>
+
+  <!-- canvas -->
+  <rect x="0" y="0" width="1600" height="360" fill="#ffffff"/>
+
+  <!-- ============ stage boxes ============ -->
+  <!-- box geometry: x = 40 + i*313, y = 50, w = 268, h = 170 -->
+
+  <!-- 1. Google Takeout -->
+  <rect x="40" y="50" width="268" height="170" rx="12" fill="#f9f9f7" stroke="rgba(11,11,11,0.10)"/>
+  <circle cx="74" cy="84" r="14" fill="#2a78d6"/>
+  <text x="74" y="88.5" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="60" y="131" font-size="19" font-weight="600" fill="#0b0b0b">Google Takeout</text>
+  <text x="60" y="161" font-size="15" fill="#52514e">my whole mailbox,</text>
+  <text x="60" y="185" font-size="15" fill="#52514e">one giant mbox file</text>
+
+  <!-- 2. Clean + pair -->
+  <rect x="353" y="50" width="268" height="170" rx="12" fill="#f9f9f7" stroke="rgba(11,11,11,0.10)"/>
+  <circle cx="387" cy="84" r="14" fill="#2a78d6"/>
+  <text x="387" y="88.5" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="373" y="131" font-size="19" font-weight="600" fill="#0b0b0b">Clean + pair</text>
+  <text x="373" y="161" font-size="15" fill="#52514e">incoming &#8596; my reply</text>
+  <text x="373" y="185" font-size="15" fill="#52514e">363 cleaned pairs</text>
+
+  <!-- 3. LoRA fine-tune -->
+  <rect x="666" y="50" width="268" height="170" rx="12" fill="#f9f9f7" stroke="rgba(11,11,11,0.10)"/>
+  <circle cx="700" cy="84" r="14" fill="#2a78d6"/>
+  <text x="700" y="88.5" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="686" y="131" font-size="19" font-weight="600" fill="#0b0b0b">LoRA fine-tune</text>
+  <text x="686" y="161" font-size="15" fill="#52514e">Gemma 4 E2B, rank 16</text>
+  <text x="686" y="185" font-size="15" fill="#52514e">~15 min on one GPU</text>
+
+  <!-- 4. Serve on the NAS -->
+  <rect x="979" y="50" width="268" height="170" rx="12" fill="#f9f9f7" stroke="rgba(11,11,11,0.10)"/>
+  <circle cx="1013" cy="84" r="14" fill="#2a78d6"/>
+  <text x="1013" y="88.5" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+  <text x="999" y="131" font-size="19" font-weight="600" fill="#0b0b0b">Serve on the NAS</text>
+  <text x="999" y="161" font-size="15" fill="#52514e">GGUF via llama.cpp</text>
+  <text x="999" y="185" font-size="15" fill="#52514e">CPU-only &#183; 2&#8211;10 s per draft</text>
+
+  <!-- 5. Gmail drafts -->
+  <rect x="1292" y="50" width="268" height="170" rx="12" fill="#f9f9f7" stroke="rgba(11,11,11,0.10)"/>
+  <circle cx="1326" cy="84" r="14" fill="#2a78d6"/>
+  <text x="1326" y="88.5" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+  <text x="1312" y="131" font-size="19" font-weight="600" fill="#0b0b0b">Gmail drafts</text>
+  <text x="1312" y="161" font-size="15" fill="#52514e">every draft human-reviewed</text>
+  <text x="1312" y="185" font-size="15" fill="#52514e">no code path can send</text>
+
+  <!-- ============ forward arrows (y = box vertical center 135) ============ -->
+  <line x1="314" y1="135" x2="345" y2="135" stroke="#2a78d6" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  <line x1="627" y1="135" x2="658" y2="135" stroke="#2a78d6" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  <line x1="940" y1="135" x2="971" y2="135" stroke="#2a78d6" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  <line x1="1253" y1="135" x2="1284" y2="135" stroke="#2a78d6" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+
+  <!-- ============ feedback loop: Gmail drafts -> LoRA fine-tune ============ -->
+  <path d="M 1426 220 L 1426 284 Q 1426 300 1410 300 L 816 300 Q 800 300 800 284 L 800 232"
+        fill="none" stroke="#898781" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrowGray)"/>
+  <text x="1113" y="288" font-size="14.5" fill="#52514e" text-anchor="middle">sent + edited replies become the next training set</text>
+</svg>

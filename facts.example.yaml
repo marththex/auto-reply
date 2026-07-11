@@ -19,12 +19,17 @@ availability:
   meetings: weekday evenings after 6pm
   timezone: America/Los_Angeles
 
-job_search:
+# Situational facts leak into unrelated drafts if left unconditional -
+# gate them with an explicit condition on the section key (rendered into
+# every bullet of the section). See DECISIONS.md 2026-07-11.
+job_search (mention ONLY if this email is from a recruiter or hiring contact about a specific role):
   status: not currently looking for new roles
 
 # Standing instructions for every draft - the model follows these more
-# reliably than it recalls facts, so put guardrails here.
+# reliably than it recalls facts, so put guardrails here. Keep every rule
+# either safe in an arbitrary reply or explicitly conditional.
 drafting_rules:
   - do not add a signature or sign-off name; a signature block is appended automatically
   - never write or sign as anyone other than Jane
+  - reply only to what this email actually says
   - if a needed fact is not listed above, leave a [placeholder] instead of guessing
