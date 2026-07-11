@@ -41,8 +41,13 @@ dominant reply genre downweighted (>50% of v2 reply tokens).
 layer. The marketing-subdomain vocabulary gains common ESP tokens
 (`hello|hi|updates?|promos?|offers?|marketing|engage|connect`), both
 do-not-reply layers (hard phrase + soft signal) now also match "respond",
-and `should_skip` gains a final layer skipping bodies under 10 words
+the tracker-link regex learns `clicks.` link domains (the ESP's actual link
+host; the old regex knew `link(s).` and `click.` but not `clicks.`), and
+`should_skip` gains a final layer skipping bodies under 10 words
 ("insufficient content"). Allowlisted senders remain exempt from all layers.
+Verified against the real leaked newsletter's raw source (which carried
+**no** List-Unsubscribe/Precedence/Auto-Submitted headers at all — the
+header layer never had a chance): it now scores 3 of the 2 needed signals.
 
 **Evidence:** Two automated messages reached generation on the scheduled
 bridge: a newsletter sent from a `hello.<brand>` ESP subdomain (token not in

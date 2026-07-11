@@ -33,7 +33,7 @@ _UNSUBSCRIBE_TEXT = re.compile(
     re.IGNORECASE,
 )
 _TRACKER_LINK = re.compile(
-    r"https?://(links?|click|email|e|go|mp\d*)\.[^\s\]]+|/ls/click|[?&]utm_",
+    r"https?://(links?|clicks?|email|e|go|mp\d*)\.[^\s\]]+|/ls/click|[?&]utm_",
     re.IGNORECASE,
 )
 _TRACKER_LINK_MIN = 3

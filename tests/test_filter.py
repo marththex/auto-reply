@@ -175,6 +175,23 @@ class TestContentScoring:
         assert result.skip
         assert "marketing-subdomain" in result.reason
 
+    def test_clicks_link_domain_counts_toward_tracker_links(self):
+        # Real leak follow-up: the ESP used clicks.<brand> link domains; the
+        # tracker regex knew 'link(s)' and 'click' but not 'clicks'.
+        result = check(
+            sender="team@corporate.example.com",
+            subject="New drinks this week",
+            body=(
+                "New drinks land in stores this week.\n"
+                "SHOP ( https://clicks.brand.example.com/f/a/AAA )\n"
+                "FIND US ( https://clicks.brand.example.com/f/a/BBB )\n"
+                "Instagram ( https://clicks.brand.example.com/f/a/CCC )\n"
+                "Unsubscribe ( https://clicks.brand.example.com/f/a/DDD )\n"
+            ),
+        )
+        assert result.skip
+        assert "tracker-links" in result.reason
+
     def test_soft_do_not_respond_variant_counts_as_signal(self):
         # "respond" must count for the soft signal too, not only the exact
         # hard-skip phrase.
